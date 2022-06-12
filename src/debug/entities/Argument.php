@@ -23,7 +23,7 @@ namespace im\debug\entities;
 /**
  * Defines a function argument
  */
-class Argument {
+class Argument extends Entity {
 
     /**
      * This is a byref argument
