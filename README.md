@@ -34,7 +34,7 @@ This package does not contain the entire test suides used by IMPHP, because thos
 
 ### Full Documentation
 
-You can view the [Full Documentation](docs/base.md) to lean more about what this offers.
+You can view the [Full Documentation](docs/debug.md) to lean more about what this offers.
 
 ### Installation
 
