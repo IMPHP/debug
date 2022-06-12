@@ -1,0 +1,59 @@
+<?php declare(strict_types=1);
+/*
+ * This file is part of the IMPHP Project: https://github.com/IMPHP
+ *
+ * Copyright (c) 2018 Daniel Bergløv, License: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ * and associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+ * THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+namespace im\debug\entities;
+
+/**
+ * Defines a type
+ *
+ * This is an extension to `im\debug\entities\Name`
+ * which also supports native (builtin) types.
+ */
+class Type extends Name {
+
+    /**
+     * Construct a new Name
+     *
+     * @param $path
+     *      Complete name path, including possible namespace
+     *
+     * @param $alias
+     *      An alias for this name
+     *
+     * @param $native
+     *      Whether this type is a native type
+     */
+    public function __construct(
+            string $path,
+            string|null $alias = null,
+
+            /** @ignore */
+            protected bool $native = false) {
+
+        parent::__construct($path, $alias);
+    }
+
+    /**
+     * Whether this type is a native type
+     */
+    public function isNative(): bool {
+        return $this->native;
+    }
+}

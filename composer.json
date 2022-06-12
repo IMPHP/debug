@@ -1,0 +1,24 @@
+{
+    "name": "imphp/debug",
+    "license": "MIT",
+    "description": "Debug tools that among other things, can scan a project for general issues like missing references, type checking, lint errors and more.",
+    "type": "library",
+    "version": "1.0.0",
+
+    "authors": [
+        {
+            "name": "Daniel Bergløv"
+        }
+    ],
+
+    "require": {
+        "php": ">=8.0.0"
+    },
+
+    "autoload": {
+        "psr-4": {
+            "im\\": "src/"
+        },
+        "files": ["bootstrap.php"]
+    }
+}
