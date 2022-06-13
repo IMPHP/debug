@@ -108,7 +108,7 @@ class DocumentFile implements Document {
      *      Code to process, incl. PHP open tags
      */
     public static function fromCode(string $code): self {
-        $lexer = new Lexer($code, true);
+        $lexer = new Lexer($code, Lexer::F_SCAN|Lexer::F_COMMENTS);
         $doc = new class() extends DocumentFile {
             public function __construct() {}
         };
@@ -128,7 +128,7 @@ class DocumentFile implements Document {
             throw new Exception("You must supply a valid resource of type 'stream'");
         }
 
-        $lexer = new Lexer(stream_get_contents($stream), true);
+        $lexer = new Lexer(stream_get_contents($stream), Lexer::F_SCAN|Lexer::F_COMMENTS);
         $doc = new class() extends DocumentFile {
             public function __construct() {}
         };
@@ -168,7 +168,7 @@ class DocumentFile implements Document {
         }
 
         $this->compile(
-            new Lexer(file_get_contents($file), true),
+            new Lexer(file_get_contents($file), Lexer::F_SCAN|Lexer::F_COMMENTS),
             $onlyHeaders
         );
     }
@@ -479,6 +479,25 @@ class DocumentFile implements Document {
     /**
      * @internal
      */
+    protected function getLeadingDocBlock(Lexer $lexer): string|null {
+        $offset = $lexer->getOffset();
+        $docblock = null;
+
+        # DocBlocs comes before modifiers
+        while (($token = $lexer->getPrevious())->is(static::$MODIFIERS)) {}
+
+        if ($token->is(T_DOC_COMMENT)) {
+            $docblock = $token->text;
+        }
+
+        $lexer->moveTo($offset);
+
+        return $docblock;
+    }
+
+    /**
+     * @internal
+     */
     protected function compile(Lexer $lexer, bool $headers = false): void {
         $parents = [$this];
         $blocks = [];
@@ -558,8 +577,10 @@ class DocumentFile implements Document {
                         $typedef = null;
                         $flags = 0;
                         $args = [];
+                        $docblock = $this->getLeadingDocBlock($lexer);
                         $modifiers = $this->getLeadingModifiers($lexer);
                         $parent = end($parents);
+                        $subDocs = null;
 
                         if (!$lexer->getNextIf("&")->is("\0")) {
                             $byref = true;
@@ -587,6 +608,11 @@ class DocumentFile implements Document {
 
                         while (!($subToken = $lexer->getNextUnless([";", "{"]))->is("\0")) {
                             switch ($subToken->getTokenName()) {
+                                case "T_DOC_COMMENT":
+                                        $subDocs = $subToken->text;
+
+                                        break;
+
                                 case "T_PUBLIC":
                                 case "T_PROTECTED":
                                 case "T_PRIVATE":
@@ -633,11 +659,16 @@ class DocumentFile implements Document {
                                             $prop->line = $token->line;
                                             $prop->pos = $token->pos;
 
+                                            if ($subDocs != null) {
+                                                $prop->setDocBlock($subDocs);
+                                            }
+
                                             $parent->addProperty($prop);
                                         }
 
                                         $args[] = new Argument($subToken->text, $typedef, $flags & ~Member::T_META);
                                         $typedef = null;
+                                        $subDocs = null;
                                         $flags = 0;
                             }
                         }
@@ -667,6 +698,10 @@ class DocumentFile implements Document {
                         $func->line = $token->line;
                         $func->pos = $token->pos;
 
+                        if ($docblock != null) {
+                            $func->setDocBlock($docblock);
+                        }
+
                         if ($parent instanceof Clazz) {
                             $parent->addMethod($func);
 
@@ -683,6 +718,7 @@ class DocumentFile implements Document {
                         $name = null;
                         $extends = null;
                         $implements = [];
+                        $docblock = $this->getLeadingDocBlock($lexer);
                         $modifiers = $this->getLeadingModifiers($lexer);
                         $flags = $this->resolveModifierFlags($modifiers);
                         $flags |= Clazz::T_CLASS;
@@ -734,6 +770,10 @@ class DocumentFile implements Document {
                         $class = new Clazz(new Name($name), $flags, $extends, $implements);
                         $class->line = $token->line;
                         $class->pos = $token->pos;
+
+                        if ($docblock != null) {
+                            $class->setDocBlock($docblock);
+                        }
 
                         $parent = end($parents);
                         $parent->addClass($class);
@@ -837,6 +877,7 @@ class DocumentFile implements Document {
                         if ($lexer->peakPrevious()->is(T_TYPEDEF)) {
                             $offset = $lexer->getOffset();
                             $typedef = $lexer->getPrevious()->text;
+                            $docblock = $this->getLeadingDocBlock($lexer);
                             $modifiers = $this->getLeadingModifiers($lexer);
                             $lexer->moveTo($offset);
 
@@ -845,6 +886,7 @@ class DocumentFile implements Document {
                                 $typedef = "object";
                             }
 
+                            $docblock = $this->getLeadingDocBlock($lexer);
                             $modifiers = $this->getLeadingModifiers($lexer);
                         }
 
@@ -862,6 +904,10 @@ class DocumentFile implements Document {
                         $prop->line = $token->line;
                         $prop->pos = $token->pos;
 
+                        if ($docblock != null) {
+                            $prop->setDocBlock($docblock);
+                        }
+
                         $parent->addProperty($prop);
 
                         break;
@@ -871,6 +917,7 @@ class DocumentFile implements Document {
 
                         if ($parent instanceof self) {
                             $name = $lexer->getNext()->text;
+                            $docblock = $this->getLeadingDocBlock($lexer);
                             $modifiers = $this->getLeadingModifiers($lexer);
                             $flags = $this->resolveModifierFlags($modifiers);
 
@@ -886,6 +933,10 @@ class DocumentFile implements Document {
 
                             $prop->line = $token->line;
                             $prop->pos = $token->pos;
+
+                            if ($docblock != null) {
+                                $prop->setDocBlock($docblock);
+                            }
 
                             $parent->addConstant($prop);
                         }

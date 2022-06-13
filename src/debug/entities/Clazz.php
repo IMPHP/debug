@@ -73,6 +73,9 @@ class Clazz extends Entity implements IteratorAggregate {
     /** @ignore */
     protected array $methods = [];           // ['name' => Routine::class, ...]
 
+    /** @ignore */
+    protected ?string $docblock = null;
+
     /**
      * Construct a new Class
      *
@@ -167,6 +170,20 @@ class Clazz extends Entity implements IteratorAggregate {
      */
     public function __toString(): string {
         return (string) $this->getName();
+    }
+
+    /**
+     *
+     */
+    public function setDocBlock(string|null $docblock): void {
+        $this->docblock = $docblock;
+    }
+
+    /**
+     *
+     */
+    public function getDocBlock(): string|null {
+        return $this->docblock;
     }
 
     /**

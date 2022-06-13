@@ -45,7 +45,7 @@ final class LexerTest extends TestCase {
                 private obj1&obj2 \$prop;
             }
 
-        ", true);
+        ", 1);
 
         $this->assertTrue(
             $lexer->getNext()->is(T_NAMESPACE) && $lexer->getNext()->is(T_STRING)

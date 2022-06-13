@@ -58,6 +58,9 @@ abstract class Member extends Entity {
      */
     const T_META = 0xFFF00;             // (1111 1111 1111 0000 0000)
 
+    /** @ignore */
+    protected ?string $docblock = null;
+
     /**
      * Construct a new Member
      *
@@ -87,6 +90,20 @@ abstract class Member extends Entity {
      */
     public function __toString(): string {
         return (string) $this->getName();
+    }
+
+    /**
+     *
+     */
+    public function setDocBlock(string|null $docblock): void {
+        $this->docblock = $docblock;
+    }
+
+    /**
+     *
+     */
+    public function getDocBlock(): string|null {
+        return $this->docblock;
     }
 
     /**

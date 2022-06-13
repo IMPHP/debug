@@ -84,6 +84,16 @@ unset($i);
 class Lexer implements IteratorAggregate {
 
     /**
+     *
+     */
+    public const F_SCAN = 0x01;
+
+    /**
+     *
+     */
+    public const F_COMMENTS = 0x02;
+
+    /**
      * Set position equal to offset bytes
      */
     public const OFFSET_SET = 1;
@@ -113,6 +123,9 @@ class Lexer implements IteratorAggregate {
         T_ARRAY,
         T_CALLABLE
     ];
+
+    /** @ignore */
+    protected int $flags = 0;
 
     /** @ignore */
     protected array $tokens;
@@ -197,10 +210,10 @@ class Lexer implements IteratorAggregate {
      * @param $scan
      *      Whether or not to scan the tokens and make alterations.
      */
-    public function __construct(string $code, bool $scan = true) {
+    public function __construct(string $code, int $flags = Lexer::F_SCAN) {
         $this->tokens = PhpToken::tokenize($code);
         $this->length = count($this->tokens);
-        $this->scan = $scan;
+        $this->flags = $flags;
     }
 
     /**
@@ -246,8 +259,8 @@ class Lexer implements IteratorAggregate {
 
                     case "T_FN":
                     case "T_FUNCTION":
-                                $this->pending = $token; 
-                                
+                                $this->pending = $token;
+
                                 break;
 
                     case "T_CURLY_OPEN":
@@ -264,8 +277,8 @@ class Lexer implements IteratorAggregate {
                                     };
                                 }
 
-                                array_pop($this->blocks); 
-                                
+                                array_pop($this->blocks);
+
                                 break;
 
                     case "{":
@@ -388,8 +401,8 @@ class Lexer implements IteratorAggregate {
                                 /*
                                  *Since 'ClassName' uses T_STRING it makes no sense for 'namespace\ClassName' not to
                                  */
-                                $this->tokens[$offset] = new PhpToken(T_STRING, $token->text, $token->line, $token->pos); 
-                                
+                                $this->tokens[$offset] = new PhpToken(T_STRING, $token->text, $token->line, $token->pos);
+
                                 break;
 
                     case "T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG":
@@ -412,7 +425,7 @@ class Lexer implements IteratorAggregate {
 
     /**
      * Extract type def information from functions and properties
-     * 
+     *
      * @internal
      */
     private function convertTypeDefs(int $offset, array $addKind = []): void {
@@ -501,7 +514,7 @@ class Lexer implements IteratorAggregate {
 
         $this->offset = $offset;
 
-        if ($this->scan && $offset > $this->scanned) {
+        if ($this->flags & static::F_SCAN && $offset > $this->scanned) {
             $this->scan($offset);
         }
 
@@ -525,12 +538,12 @@ class Lexer implements IteratorAggregate {
         $offset = $this->offset;
 
         do {
-            if ($this->scan && $offset >= $this->scanned) {
+            if ($this->flags & static::F_SCAN && $offset >= $this->scanned) {
                 $this->scan($offset+1);
             }
 
             if (($token = $this->tokens[++$offset] ?? null) !== null) {
-                if (!$token->isIgnorable()
+                if ((!$token->isIgnorable() || ($this->flags & static::F_COMMENTS && $token->is(T_DOC_COMMENT)))
                         && ($kind === null || $token->is($kind))) {
 
                     $this->offset = $offset;
@@ -562,7 +575,7 @@ class Lexer implements IteratorAggregate {
 
         do {
             if (($token = $this->tokens[--$offset] ?? null) !== null) {
-                if (!$token->isIgnorable()
+                if ((!$token->isIgnorable() || ($this->flags & static::F_COMMENTS && $token->is(T_DOC_COMMENT)))
                         && ($kind === null || $token->is($kind))) {
 
                     $this->offset = $offset;
