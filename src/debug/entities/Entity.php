@@ -39,4 +39,9 @@ abstract class Entity implements Stringable {
      * The position of where this entity begins
      */
     public int $pos = -1;
+
+    /**
+     * Get synopsis of this entity
+     */
+    public abstract function getSynopsis(): string;
 }

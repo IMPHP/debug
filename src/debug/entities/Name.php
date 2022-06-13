@@ -58,6 +58,21 @@ class Name extends Entity {
     }
 
     /**
+     *
+     */
+    #[Override("im\debug\entities\Entity")]
+    public function getSynopsis(): string {
+        return $this->getLabel();
+    }
+
+    /**
+     * Check whether this name has an alias
+     */
+    public function hasAlias(): bool {
+        return $this->alias != null;
+    }
+
+    /**
      * Get the label for this name
      *
      * This returns a basename without any namespace part.

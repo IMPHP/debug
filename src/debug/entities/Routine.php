@@ -88,6 +88,64 @@ class Routine extends Member implements IteratorAggregate {
     }
 
     /**
+     *
+     */
+    #[Override("im\debug\entities\Entity")]
+    public function getSynopsis(): string {
+        $args = [[]];
+
+        foreach ($this->params as $name => $param) {
+            $pos = count($args)-1;
+
+            if ($param->isOptional()) {
+                $args[$pos+1] = $args[$pos++];
+            }
+
+            $args[$pos][] = $param->getSynopsis();
+        }
+
+        $flags = [
+            static::T_PUBLIC,
+            static::T_PROTECTED,
+            static::T_PRIVATE,
+            static::T_FINAL,
+            static::T_ABSTRACT,
+            static::T_STATIC
+        ];
+        $mods = [];
+
+        foreach ($flags as $flag) {
+            $mod = match (($this->flags & $flag) == $flag ? $flag : 0) {
+                static::T_PUBLIC => "public",
+                static::T_PROTECTED => "protected",
+                static::T_PRIVATE => "private",
+                static::T_FINAL => "final",
+                static::T_ABSTRACT => "abstract",
+                static::T_STATIC => "static",
+
+                default => null
+            };
+
+            if ($mod != null) {
+                $mods[] = $mod;
+            }
+        }
+
+        $def = trim(implode(" ", $mods) . " function");
+
+        if (!$this->isAnonymous()) {
+            $def .= " {$this->name->getLabel()}";
+        }
+
+        $syn = "";
+        foreach ($args as $arg) {
+            $syn .= "$def(" . implode(", ", $arg) . "): {$this->type->getSynopsis()}\n";
+        }
+
+        return trim($syn);
+    }
+
+    /**
      * Whether this routine returns by reference
      */
     public function isByRef(): bool {
@@ -122,7 +180,7 @@ class Routine extends Member implements IteratorAggregate {
      * Provides a Traversable to iterate through all arguments
      */
     public function getIterator(): Traversable {  // yield Argument::class
-        foreach ($this->arguments as $name => $param) {
+        foreach ($this->params as $name => $param) {
             yield $name => $param;
         }
     }

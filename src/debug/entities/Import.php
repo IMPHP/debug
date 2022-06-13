@@ -60,6 +60,26 @@ class Import extends Name {
     }
 
     /**
+     *
+     */
+    #[Override("im\debug\entities\Entity")]
+    public function getSynopsis(): string {
+        $syn = "use ";
+
+        if ($this->type > 0) {
+            $syn .= "{$this->getType()} ";
+        }
+
+        $syn .= $this->getName();
+
+        if ($this->hasAlias()) {
+            $syn .= " as {$this->getLabel()}";
+        }
+
+        return $syn;
+    }
+
+    /**
      * Get the import type
      */
     public function getType(): string {

@@ -207,18 +207,18 @@ class DocumentFile implements Document {
 
     /**
      * Get a list of all class references
-     * 
-     * A class reference is every single class access made. 
-     * For an example accessing a static property or constant, 
-     * creating a new class instance, implementing an interface, 
-     * extending a base class etc. 
-     * 
+     *
+     * A class reference is every single class access made.
+     * For an example accessing a static property or constant,
+     * creating a new class instance, implementing an interface,
+     * extending a base class etc.
+     *
      * This method returns a list of all classes being used within
-     * this file. 
+     * this file.
      */
     public function getReferences(): array {
         /*
-         * TODO: 
+         * TODO:
          *      Extend this to global constants and functions
          */
         return $this->references;
@@ -319,7 +319,7 @@ class DocumentFile implements Document {
      */
     #[Override("im\debug\entities\Document")]
     public function getFunction(string $label): ?Routine {
-        return $this->routines[$name] ?? null;
+        return $this->routines[$label] ?? null;
     }
 
     /**
@@ -548,7 +548,7 @@ class DocumentFile implements Document {
 
                 case "T_FUNCTION":
                         /*
-                         * TODO: 
+                         * TODO:
                          *      Add support for arrow functions
                          */
 
@@ -570,7 +570,7 @@ class DocumentFile implements Document {
 
                         } else {
                             $name = "closure#{$this->randomId()}";
-                            $anon = true; 
+                            $anon = true;
                         }
 
                         if ($parent instanceof self) {
@@ -774,7 +774,7 @@ class DocumentFile implements Document {
 
                                     case "T_AS":
                                             $alias = $lexer->getNext(T_STRING)->text;
-                                            
+
                                             break;
 
                                     case "{":

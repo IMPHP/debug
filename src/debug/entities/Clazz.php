@@ -104,6 +104,64 @@ class Clazz extends Entity implements IteratorAggregate {
     ) {}
 
     /**
+     *
+     */
+    #[Override("im\debug\entities\Entity")]
+    public function getSynopsis(): string {
+        $flags = [
+            static::T_FINAL,
+            static::T_ABSTRACT,
+            static::T_TRAIT,
+            static::T_INTERFACE,
+            static::T_ENUM,
+            static::T_CLASS
+        ];
+        $mods = [];
+
+        foreach ($flags as $flag) {
+            $mod = match (($this->flags & $flag) == $flag ? $flag : 0) {
+                static::T_FINAL => "final",
+                static::T_ABSTRACT => "abstract",
+                static::T_TRAIT => "trait",
+                static::T_INTERFACE => "interface",
+                static::T_ENUM => "enum",
+                static::T_CLASS => "class",
+
+                default => null
+            };
+
+            if ($mod != null) {
+                $mods[] = $mod;
+            }
+        }
+
+        $syn = implode(" ", $mods);
+
+        if (!$this->isAnonymous()) {
+            $syn .= " {$this->name->getLabel()}";
+
+        } else {
+            $syn .= "()";
+        }
+
+        if ($this->extends != null) {
+            $syn .= " extends {$this->extends}";
+        }
+
+        if (!empty($this->implements)) {
+            $syn .= " implements ";
+            $syn .= implode(", ", $this->implements);
+        }
+
+        if (!empty($this->traits)) {
+            $syn .= " uses ";
+            $syn .= implode(", ", $this->traits);
+        }
+
+        return $syn;
+    }
+
+    /**
      * @ignore
      * @php
      */
@@ -237,7 +295,7 @@ class Clazz extends Entity implements IteratorAggregate {
      *      A property to add
      */
     public function addProperty(Property $prop): void {
-        $name = (string) $prop->getName();
+        $name = (string) $prop->getName()->getLabel();
 
         if (!isset($this->properties[$name])) {
             $this->properties[$name] = $prop;
@@ -253,8 +311,8 @@ class Clazz extends Entity implements IteratorAggregate {
      * @param $name
      *      Name of the property to return
      */
-     public function getProperty(string $name): ?Property {
-         return $this->properties[$name] ?? null;
+     public function getProperty(string $label): ?Property {
+         return $this->properties[$label] ?? null;
      }
 
     /**
@@ -274,7 +332,7 @@ class Clazz extends Entity implements IteratorAggregate {
      *      A method to add
      */
     public function addMethod(Routine $func): void {
-        $name = (string) $func->getName();
+        $name = (string) $func->getName()->getLabel();
 
         if (!isset($this->methods[$name])) {
             $this->methods[$name] = $func;
@@ -290,8 +348,8 @@ class Clazz extends Entity implements IteratorAggregate {
      * @param $name
      *      Name of the method to return
      */
-     public function getMethod(string $name): ?Routine {
-         return $this->methods[$name] ?? null;
+     public function getMethod(string $label): ?Routine {
+         return $this->methods[$label] ?? null;
      }
 
     /**

@@ -39,6 +39,43 @@ class Property extends Member {
     const T_CASE = 0x10000;             // (0001 0000 0000 0000 0000)
 
     /**
+     *
+     */
+    #[Override("im\debug\entities\Entity")]
+    public function getSynopsis(): string {
+        $char = "";
+
+        if (($this->flags & static::T_PUBLIC) == static::T_PUBLIC) {
+            $mods[] = "public";
+
+        } else if (($this->flags & static::T_PROTECTED) == static::T_PROTECTED) {
+            $mods[] = "protected";
+
+        } else if (($this->flags & static::T_PRIVATE) == static::T_PRIVATE) {
+            $mods[] = "private";
+        }
+
+        if (($this->flags & static::T_FINAL) == static::T_FINAL) {
+            $mods[] = "const";
+
+        } else {
+            $char = "\$";
+
+            if (($this->flags & static::T_STATIC) == static::T_STATIC) {
+                $mods[] = "static";
+            }
+
+            if (($this->flags & static::T_READONLY) == static::T_READONLY) {
+                $mods[] = "readonly";
+            }
+        }
+
+        $syn = trim(implode(" ", $mods) . " {$this->type->getSynopsis()} {$char}{$this->name->getLabel()}");
+
+        return $syn;
+    }
+
+    /**
      * Whether this member is readonly
      */
     public function isReadonly(): bool {

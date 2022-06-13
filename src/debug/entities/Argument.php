@@ -64,6 +64,26 @@ class Argument extends Entity {
     {}
 
     /**
+     *
+     */
+    #[Override("im\debug\entities\Entity")]
+    public function getSynopsis(): string {
+        $syn = $this->type->getSynopsis() . " ";
+
+        if ($this->isByRef()) {
+            $syn .= "&";
+        }
+
+        if ($this->isVariadic()) {
+            $syn .= "...";
+        }
+
+        $syn .= "\${$this->getName()}";
+
+        return $syn;
+    }
+
+    /**
      * @ignore
      * @php
      */
@@ -102,20 +122,20 @@ class Argument extends Entity {
      * An optional argument is one that provides a default value
      */
     public function isOptional(): bool {
-        return ($this->flags & T_OPTIONAL) > 0;
+        return ($this->flags & static::T_OPTIONAL) > 0;
     }
 
     /**
      * Whether this argument is passed by reference
      */
     public function isByRef(): bool {
-        return ($this->flags & T_BYREF) > 0;
+        return ($this->flags & static::T_BYREF) > 0;
     }
 
     /**
      * Whether this is a variable length argument
      */
     public function isVariadic(): bool {
-        return ($this->flags & T_VARIADIC) > 0;
+        return ($this->flags & static::T_VARIADIC) > 0;
     }
 }
